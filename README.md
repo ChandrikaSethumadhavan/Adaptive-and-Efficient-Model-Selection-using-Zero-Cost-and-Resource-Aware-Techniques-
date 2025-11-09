@@ -134,8 +134,8 @@ If you're running the pipeline on your **local machine**, you might notice a pro
 
 Thanks to the University of Freiburg for helping shape this project with the AutoML course.
 Made along with :
-1. Manasi Mahendra Jeste, University of Freiburg
-2. Reeya Biju Varghese, University of Freiburg
+1. Manasi Mahendra Jeste, University of Freiburg @MANASIJESTE
+2. Reeya Biju Varghese, University of Freiburg @Reeya-varghese
 
 
 About
