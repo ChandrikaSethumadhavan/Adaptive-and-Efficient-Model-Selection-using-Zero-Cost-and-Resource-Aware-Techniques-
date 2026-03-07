@@ -14,6 +14,9 @@ import os
 import random
 from Zero_cost import ZeroCostCandidateGenerator
 from training import AutoML
+from export_onnx import export_to_onnx
+from infer_onnxruntime import run_inference_benchmark
+from quantize_onnx import quantize_dynamic_int8
 import optuna
 from optuna.samplers import NSGAIIISampler
 import traceback
@@ -579,6 +582,21 @@ if __name__ == "__main__":
     parser.add_argument("--enable-progressive", action="store_true", help="Enable progressive training strategy")
     parser.add_argument("--enable-carbon-manager", action="store_true", help="Enable carbon budget manager")
     parser.add_argument("--quiet", action="store_true", help="Log only warnings and errors.")
+    parser.add_argument(
+        "--deploy",
+        action="store_true",
+        help=(
+            "After final training, export the selected model to ONNX, apply INT8 "
+            "dynamic quantization, and benchmark PyTorch vs ONNX Runtime inference. "
+            "Requires: pip install onnxruntime"
+        ),
+    )
+    parser.add_argument(
+        "--deploy-output-dir",
+        type=str,
+        default="./onnx_models",
+        help="Directory where ONNX models and metadata are saved (default: ./onnx_models).",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO if not args.quiet else logging.WARNING)
@@ -781,4 +799,61 @@ if __name__ == "__main__":
     print(f"Peak GPU Memory: {max(global_metrics['peak_gpu_memory_gb'], final_metrics['peak_gpu_memory_gb']):.2f} GB")
     print("Enhanced AutoML with Combined Carbon Strategies completed successfully!")
 
-    
+    # ------------------------------------------------------------------
+    # Deployment stage — ONNX export + quantization + inference benchmark
+    # ------------------------------------------------------------------
+    if args.deploy:
+        print("\n" + "=" * 60)
+        print("  DEPLOYMENT STAGE")
+        print("=" * 60)
+
+        # Input channels: ViT always receives 3-channel input (the transform
+        # repeats grayscale channels before the model); other backbones keep
+        # the raw dataset channel count (e.g. 1 for Fashion-MNIST with ResNet18).
+        in_channels = (
+            1 if (dataset_class.channels == 1 and "vit" not in backbone) else 3
+        )
+
+        # 1) Export to ONNX
+        try:
+            onnx_path, onnx_meta = export_to_onnx(
+                model=automl.model,
+                backbone_name=backbone,
+                in_channels=in_channels,
+                num_classes=dataset_class.num_classes,
+                output_dir=args.deploy_output_dir,
+            )
+        except Exception as e:
+            print(f"[DEPLOY] ONNX export failed: {e}")
+            onnx_path = None
+
+        # 2) INT8 dynamic quantization
+        int8_path = None
+        if onnx_path:
+            try:
+                int8_path, size_info = quantize_dynamic_int8(
+                    onnx_path=onnx_path,
+                    output_dir=args.deploy_output_dir,
+                )
+            except Exception as e:
+                print(f"[DEPLOY] Quantization failed: {e}")
+
+        # 3) Inference benchmark (PyTorch vs ORT CPU/CUDA, + INT8 if available)
+        if onnx_path:
+            try:
+                # Move model back to CPU for a fair CPU-only baseline
+                automl.model.cpu()
+                run_inference_benchmark(
+                    model=automl.model,
+                    onnx_path=onnx_path,
+                    in_channels=in_channels,
+                    batch_size=1,
+                    warmup=10,
+                    runs=50,
+                    quantized_onnx_path=int8_path,
+                )
+            except Exception as e:
+                print(f"[DEPLOY] Benchmark failed: {e}")
+
+        print("[DEPLOY] Deployment stage complete.")
+
