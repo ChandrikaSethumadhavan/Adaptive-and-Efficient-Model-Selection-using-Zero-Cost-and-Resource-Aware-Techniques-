@@ -19,7 +19,7 @@ def export_to_onnx(
     in_channels: int,
     num_classes: int,
     output_dir: str = "./onnx_models",
-    opset_version: int = 17,
+    opset_version: int = 18,
 ) -> tuple[str, dict]:
     """
     Export a trained PyTorch model to ONNX format and save metadata.
@@ -54,6 +54,7 @@ def export_to_onnx(
         input_names=["input"],
         output_names=["output"],
         dynamic_axes={"input": {0: "batch_size"}, "output": {0: "batch_size"}},
+        dynamo=False,  # force legacy TorchScript exporter so weights are embedded
     )
 
     model_size_mb = os.path.getsize(onnx_path) / (1024 ** 2)
