@@ -17,6 +17,7 @@ from training import AutoML
 from export_onnx import export_to_onnx
 from infer_onnxruntime import run_inference_benchmark
 from quantize_onnx import quantize_dynamic_int8
+from deploy_visualize import plot_benchmark_dashboard, plot_pipeline_explainer
 import optuna
 from optuna.samplers import NSGAIIISampler
 import traceback
@@ -829,6 +830,7 @@ if __name__ == "__main__":
 
         # 2) INT8 dynamic quantization
         int8_path = None
+        size_info = None
         if onnx_path:
             try:
                 int8_path, size_info = quantize_dynamic_int8(
@@ -839,11 +841,12 @@ if __name__ == "__main__":
                 print(f"[DEPLOY] Quantization failed: {e}")
 
         # 3) Inference benchmark (PyTorch vs ORT CPU/CUDA, + INT8 if available)
+        bench_results = {}
         if onnx_path:
             try:
                 # Move model back to CPU for a fair CPU-only baseline
                 automl.model.cpu()
-                run_inference_benchmark(
+                bench_results = run_inference_benchmark(
                     model=automl.model,
                     onnx_path=onnx_path,
                     in_channels=in_channels,
@@ -854,6 +857,22 @@ if __name__ == "__main__":
                 )
             except Exception as e:
                 print(f"[DEPLOY] Benchmark failed: {e}")
+
+        # 4) Visualisations
+        if bench_results and onnx_path:
+            try:
+                plot_benchmark_dashboard(
+                    results=bench_results,
+                    onnx_meta=onnx_meta,
+                    size_info=size_info if int8_path else None,
+                    output_dir=args.deploy_output_dir,
+                )
+                plot_pipeline_explainer(
+                    backbone=backbone,
+                    output_dir=args.deploy_output_dir,
+                )
+            except Exception as e:
+                print(f"[DEPLOY] Visualisation failed: {e}")
 
         print("[DEPLOY] Deployment stage complete.")
 
