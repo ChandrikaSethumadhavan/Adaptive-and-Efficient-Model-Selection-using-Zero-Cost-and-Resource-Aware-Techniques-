@@ -1,4 +1,9 @@
 # Adaptive-and-Efficient-Model-Selection-using-Zero-Cost-and-Resource-Aware-Techniques
+## Extension:  <img width="2385" height="1026" alt="pipeline_explainer" src="https://github.com/user-attachments/assets/8106f367-401d-4c59-992a-b0d03ebc071b" />
+
+<img width="2067" height="1369" alt="benchmark_dashboard" src="https://github.com/user-attachments/assets/2adaa6a7-e886-491b-9988-6787ea05cb9e" />
+
+
 
 ## Technical Details
 
