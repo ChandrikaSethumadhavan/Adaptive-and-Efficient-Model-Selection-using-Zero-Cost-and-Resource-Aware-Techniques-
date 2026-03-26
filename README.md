@@ -1,6 +1,6 @@
 # Adaptive-and-Efficient-Model-Selection-using-Zero-Cost-and-Resource-Aware-Techniques
 
-## ⚙️ Technical Details
+## Technical Details
 
 ### Model Architecture & Trials and Experiments
 <p align="center">
