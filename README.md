@@ -2,21 +2,21 @@
 
 ## ⚙️ Technical Details
 
-### 🧠 Model Architecture & 🧪 Trials and Experiments
+### Model Architecture & Trials and Experiments
 <p align="center">
   <img src="https://github.com/user-attachments/assets/d96e7241-9876-4c1d-9c21-fd2dcb35d7e3" alt="Model Architecture" width="45%"/>
   &nbsp;&nbsp;
   <img src="https://github.com/user-attachments/assets/8337acfa-5c85-4c66-8306-f17699f82ed2" alt="Trials and Experiments" width="45%"/>
 </p>
 
-### 📊 Results on Multiple Datasets & Accuracy Across Trials
+### Results on Multiple Datasets & Accuracy Across Trials
 <p align="center">
   <img src="https://github.com/user-attachments/assets/139dc7c6-9fc8-444d-88ba-f6defc89886e" alt="Results on Datasets" width="45%"/>
   &nbsp;&nbsp;
   <img src="https://github.com/user-attachments/assets/dae433ca-95a4-4062-9549-5be3b7707298" alt="Accuracy Across Trials" width="45%"/>
 </p>
 
-### 🌍 Validation Accuracy & Carbon Footprint Comparison
+### Validation Accuracy & Carbon Footprint Comparison
 <p align="center">
   <img src="https://github.com/user-attachments/assets/9b55b9ad-4d68-47f9-94c6-97e09683b3f1" alt="Validation Accuracy and Carbon Footprint" width="60%"/>
 </p>
