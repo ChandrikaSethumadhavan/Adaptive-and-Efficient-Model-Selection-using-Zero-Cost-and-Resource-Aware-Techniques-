@@ -21,6 +21,7 @@ from deploy_visualize import plot_benchmark_dashboard, plot_pipeline_explainer
 import optuna
 from optuna.samplers import NSGAIIISampler
 import traceback
+import wandb
 
 from model import get_transforms
 from utils import calculate_mean_std
@@ -560,6 +561,21 @@ def optuna_objective(
     if adjusted_carbon > carbon_budget_kg:
         trial.set_user_attr("carbon_budget_exceeded", True)
         raise optuna.TrialPruned(f"Carbon budget exceeded: {adjusted_carbon:.4f} kg (efficiency-adjusted)")
+    
+    
+    wandb.log({
+    "trial": trial.number,
+    "trial_accuracy": acc,
+    "trial_f1": f1,
+    "trial_training_time_sec": training_time,
+    "trial_carbon_kg": sustainability_metrics["emissions_kg"],
+    "trial_adjusted_carbon_kg": adjusted_carbon,
+    "trial_peak_gpu_memory_gb": sustainability_metrics["peak_gpu_memory_gb"],
+    "trial_lr": lr,
+    "trial_batch_size": batch_size,
+    "trial_epochs": epochs,
+    "trial_backbone": backbone,
+})
 
     # Returns 5 objectives: accuracy, f1, time, adjusted_emissions, gpu_memory
     return (
@@ -599,6 +615,10 @@ if __name__ == "__main__":
         help="Directory where ONNX models and metadata are saved (default: ./onnx_models).",
     )
     args = parser.parse_args()
+    wandb.init(
+        project="edge-ai-automl-hpo",
+        name=f"{args.dataset}_{args.n_trials}_trials_seed_{args.seed}",
+        config=vars(args))
 
     logging.basicConfig(level=logging.INFO if not args.quiet else logging.WARNING)
 
@@ -876,3 +896,4 @@ if __name__ == "__main__":
 
         print("[DEPLOY] Deployment stage complete.")
 
+wandb.finish()

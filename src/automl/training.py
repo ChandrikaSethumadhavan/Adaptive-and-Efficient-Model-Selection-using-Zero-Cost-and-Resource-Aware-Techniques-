@@ -13,6 +13,7 @@ from utils import calculate_mean_std
 from torch.utils.data import Subset, random_split
 from dac import DynamicAlgorithmController
 from torchvision import transforms
+import wandb
 
 logger = logging.getLogger(__name__)
 
@@ -224,6 +225,17 @@ class AutoML:
                 f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}, Acc: {epoch_acc:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
             print(
                 f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}, Acc: {epoch_acc:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
+            if wandb.run is not None:
+                prefix = f"trial_{trial.number}" if trial is not None else "final_training"
+
+                wandb.log({
+                    f"{prefix}/epoch": epoch + 1,
+                    f"{prefix}/train_loss": epoch_loss,
+                    f"{prefix}/train_acc": epoch_acc,
+                    f"{prefix}/val_loss": val_loss,
+                    f"{prefix}/val_acc": val_acc,
+                    f"{prefix}/lr": optimizer.param_groups[0]["lr"],
+                })
             # DAC Learning Rate Update  
             if self.dac:
                 self.dac.update(epoch_loss)
